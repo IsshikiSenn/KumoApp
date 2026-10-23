@@ -50,6 +50,8 @@ type sim struct {
 	paths    paths.Paths
 	events   []Event
 	mu       sync.Mutex
+	// installer replaces GitHub in instances made after it is set.
+	installer mihomo.Installer
 }
 
 func coreBinary(t *testing.T) string {
@@ -115,6 +117,7 @@ func (s *sim) instance(owner core.Owner) *Kumo {
 	deps.SystemProxy = s.platform
 	deps.WatchInterval = 50 * time.Millisecond
 	deps.ReadyTimeout = 10 * time.Second
+	deps.Installer = s.installer
 	k := New(deps)
 	k.Events.Subscribe(func(e Event) {
 		s.mu.Lock()

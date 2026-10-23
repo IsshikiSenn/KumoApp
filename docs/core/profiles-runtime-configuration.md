@@ -49,8 +49,10 @@ enabled overrides and Kumo's controlled keys, which always win:
 - `tun` when Kumo's TUN is on. The stack is `mips` (the default),
   `mixed`, `gvisor` or `system`; anything else becomes `mips`. `mips` needs
   Mihomo 1.19.32 or later — an older core rejects it as an invalid stack and
-  does not start. Kumo does not check the core's version; the TUN page says
-  so when MIPS is selected. Stored settings keep their stack, so only new
+  does not start. Kumo does not check the core's version before it starts.
+  The TUN page says so when MIPS is selected: it warns when the core Kumo
+  downloaded is older, and keeps the plain hint when the selected core's
+  version is unknown (only the managed core has one). Stored settings keep their stack, so only new
   installs and unset values default to `mips`;
 - `dns` (and `hosts`) when *Manage DNS* is on — otherwise the profile's own
   `dns` applies;

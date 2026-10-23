@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/AstraFoundry/KumoApp/internal/domain/core"
 	"github.com/AstraFoundry/KumoApp/internal/infrastructure/mihomo"
@@ -16,6 +17,9 @@ type SettingsService struct {
 	deps      Dependencies
 	lifecycle *Lifecycle
 	proxy     *SystemProxyService
+
+	// installMu keeps two core installs from replacing the file at once.
+	installMu sync.Mutex
 }
 
 // CoreSettings is what the Core and Configure pages edit.
@@ -40,6 +44,7 @@ func (s *SettingsService) Get() (CoreSettings, error) {
 	if candidates == nil {
 		candidates = []mihomo.Candidate{}
 	}
+	s.markManaged(candidates)
 	selected := rt.CorePath
 	if selected == "" && len(candidates) > 0 {
 		selected = candidates[0].Path
@@ -172,15 +177,6 @@ func (s *SettingsService) SetCorePath(path string) error {
 	return err
 }
 
-// InstallCore downloads the latest Mihomo and selects it.
-func (s *SettingsService) InstallCore(ctx context.Context) (mihomo.Installed, error) {
-	installed, err := mihomo.Install(ctx, s.deps.Paths.ManagedCore())
-	if err != nil {
-		return installed, err
-	}
-	return installed, s.SetCorePath(installed.Path)
-}
-
 // GrantTUN asks the system for the permission TUN needs.
 func (s *SettingsService) GrantTUN(ctx context.Context) (TUNPermission, error) {
 	settings, err := s.Get()
@@ -194,7 +190,7 @@ func (s *SettingsService) GrantTUN(ctx context.Context) (TUNPermission, error) {
 	if rt.State == core.StateRunning && process.IsCore(rt.PID, settings.CorePath) {
 		return TUNPermission{}, errors.New("stop Kumo before granting TUN permission")
 	}
-	if err := grantTUN(ctx, settings.CorePath); err != nil {
+	if err := s.grantTUN(ctx, settings.CorePath); err != nil {
 		return tunPermission(settings.CorePath), err
 	}
 	return tunPermission(settings.CorePath), nil

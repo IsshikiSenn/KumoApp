@@ -6,6 +6,7 @@ import { TunSwitch } from "@/features/toggle-tun";
 import { Settings, type TUNSettings } from "@/shared/api/mygo";
 import { t } from "@/shared/i18n";
 import { errorMessage } from "@/shared/lib/errors";
+import { atLeast } from "@/shared/lib/version";
 import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/shared/ui/alert";
 import { ApplyBar } from "@/shared/ui/apply-bar";
 import { Button } from "@/shared/ui/button";
@@ -19,6 +20,8 @@ import { Switch } from "@/shared/ui/switch";
 import { toastManager } from "@/shared/ui/toast";
 import { PageHeader } from "@/widgets/page-header";
 
+const MIPS_MINIMUM = "1.19.32";
+
 export function TunPage() {
   const status = useStatus();
   const form = useCoreSettings();
@@ -26,6 +29,9 @@ export function TunPage() {
   const tun = form.draft?.tun;
   const permission = form.stored?.tunPermission;
   const set = (patch: Partial<TUNSettings>) => form.edit((d) => ({ ...d, tun: { ...d.tun, ...patch } }));
+  // Only the core Kumo downloaded has a known version.
+  const coreVersion = form.stored?.candidates.find((c) => c.path === form.stored?.corePath)?.version;
+  const mipsHint = !coreVersion ? t.tunStackMipsHint() : atLeast(coreVersion, MIPS_MINIMUM) ? undefined : t.tunStackMipsOutdated(coreVersion);
 
   async function grant() {
     setGranting(true);
@@ -71,7 +77,7 @@ export function TunPage() {
         {tun && (
           <Section description={t.tunAdvancedHint()} title={t.tunAdvanced()}>
             <SettingsGroup>
-              <SettingRow description={tun.stack === "mips" ? t.tunStackMipsHint() : undefined} label={t.tunStack()}>
+              <SettingRow description={tun.stack === "mips" ? mipsHint : undefined} label={t.tunStack()}>
                 <OptionSelect
                   label={t.tunStack()}
                   onChange={(stack) => set({ stack })}

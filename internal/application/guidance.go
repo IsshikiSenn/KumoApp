@@ -103,8 +103,8 @@ var guides = []Guide{
 	{"core", []Intent{
 		{"install", "Install or update the Mihomo core", []Step{
 			{"kumo core status --json", "see which core Kumo uses"},
-			{"kumo core install --json", "download the latest Mihomo for this machine"},
-			{"kumo restart --json", "run the new core"},
+			{"kumo core install --json", "install the latest Mihomo; a running core is restarted, and nothing changes when it is current"},
+			{"kumo start --json", "start Mihomo if it was not running"},
 		}},
 		{"ports", "Change ports or allow the LAN", []Step{
 			{"kumo config show --json", "read the current settings"},

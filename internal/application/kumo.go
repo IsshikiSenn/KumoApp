@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"time"
 
 	"github.com/AstraFoundry/KumoApp/internal/domain/core"
@@ -11,6 +12,7 @@ import (
 	"github.com/AstraFoundry/KumoApp/internal/domain/systemproxy"
 	"github.com/AstraFoundry/KumoApp/internal/infrastructure/fetch"
 	"github.com/AstraFoundry/KumoApp/internal/infrastructure/jsoverride"
+	"github.com/AstraFoundry/KumoApp/internal/infrastructure/mihomo"
 	"github.com/AstraFoundry/KumoApp/internal/infrastructure/pac"
 	"github.com/AstraFoundry/KumoApp/internal/infrastructure/paths"
 	"github.com/AstraFoundry/KumoApp/internal/infrastructure/storage"
@@ -35,6 +37,11 @@ type Dependencies struct {
 	Owner core.Owner
 	// BundledDir holds a Mihomo shipped with the app, if any.
 	BundledDir string
+	// Installer fetches Mihomo builds; the zero value uses GitHub.
+	Installer mihomo.Installer
+	// GrantTUN lets the core at a path create a TUN device; nil asks the
+	// system.
+	GrantTUN func(ctx context.Context, corePath string) error
 	// ReadyTimeout bounds how long a start waits for the controller.
 	ReadyTimeout time.Duration
 	// WatchInterval is how often the system proxy is checked for

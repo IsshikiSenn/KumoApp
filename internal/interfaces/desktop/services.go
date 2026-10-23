@@ -20,7 +20,6 @@ import (
 	"github.com/AstraFoundry/KumoApp/internal/domain/proxy"
 	"github.com/AstraFoundry/KumoApp/internal/domain/systemproxy"
 	"github.com/AstraFoundry/KumoApp/internal/domain/topology"
-	"github.com/AstraFoundry/KumoApp/internal/infrastructure/mihomo"
 )
 
 // Runtime starts, stops and describes the core.
@@ -305,8 +304,9 @@ func (s Settings) ChooseCore(ctx context.Context) (string, error) {
 	return paths[0], s.k.Settings.SetCorePath(paths[0])
 }
 
-// InstallCore downloads the latest Mihomo.
-func (s Settings) InstallCore(ctx context.Context) (mihomo.Installed, error) {
+// InstallCore installs the latest Mihomo, restarting a running one and
+// giving TUN permission to the new file again.
+func (s Settings) InstallCore(ctx context.Context) (application.CoreUpdate, error) {
 	return s.k.Settings.InstallCore(context.WithoutCancel(ctx))
 }
 

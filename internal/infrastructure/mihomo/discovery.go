@@ -14,6 +14,11 @@ type Candidate struct {
 	Name   string `json:"name"`
 	Path   string `json:"path"`
 	Source string `json:"source"`
+	// Managed is true for the core Kumo downloads, whichever way it was
+	// found; Source says "selected" when it is the chosen one.
+	Managed bool `json:"managed,omitempty"`
+	// Version is known only for the managed core.
+	Version string `json:"version,omitempty"`
 }
 
 var names = []string{"mihomo", "mihomo-alpha", "clash-meta", "clash"}

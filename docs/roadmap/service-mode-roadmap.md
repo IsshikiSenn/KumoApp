@@ -19,4 +19,16 @@ worth reconsidering if a platform stops honoring the grant.
   the same guardian cleanup.
 - **P1 Update signing.** The updater is wired; the key pair and config
   entry are the maintainers' step (see [releases](../operations/release-management.md#updates)).
+- **P1 Core download checks.** The managed Mihomo is installed without a
+  checksum or signature check. Mihomo's releases publish no `.sha256` files
+  and no signatures; the only digest is the `digest` field of each asset in
+  GitHub's Releases API, which is rate limited for anonymous callers (the
+  installer reads `version.txt` to avoid it). A check against it guards
+  against a damaged or tampered download, not a poisoned release.
+- **P2 Core versions beyond the managed core.** Only the core Kumo
+  downloaded has a known version (the tag it was installed from). There is
+  no rollback, no choosing a release (`--version`), no update notice, and
+  no version for other cores; asking the binary (`mihomo -v`) would cover
+  them. Without a version, nothing refuses to start a core too old for the
+  MIPS stack.
 - **P2 Windows release.** Needs the TUN permission flow and CLI link.

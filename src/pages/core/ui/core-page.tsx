@@ -2,9 +2,12 @@ import { CopyIcon, DownloadIcon, FileCodeIcon, FolderOpenIcon } from "lucide-rea
 import { useState } from "react";
 import { useStatus } from "@/entities/status";
 import { useCoreSettings } from "@/features/edit-core-settings";
-import { App, Settings } from "@/shared/api/mygo";
+import { App, type CoreUpdate, Settings } from "@/shared/api/mygo";
+import { routes } from "@/shared/config/routes";
 import { t } from "@/shared/i18n";
 import { errorMessage } from "@/shared/lib/errors";
+import { navigate } from "@/shared/lib/router";
+import { AlertDialog, AlertDialogClose, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogPopup, AlertDialogTitle } from "@/shared/ui/alert-dialog";
 import { ApplyBar } from "@/shared/ui/apply-bar";
 import { Button } from "@/shared/ui/button";
 import { CodeEditor } from "@/shared/ui/code-editor";
@@ -18,19 +21,43 @@ import { Switch } from "@/shared/ui/switch";
 import { toastManager } from "@/shared/ui/toast";
 import { PageHeader } from "@/widgets/page-header";
 
+function announce(update: CoreUpdate) {
+  if (!update.updated) {
+    toastManager.add({ title: t.coreCurrent(update.version), type: "success" });
+    return;
+  }
+  const title = update.restarted ? t.coreInstalledRestarted(update.version) : t.coreInstalled(update.version);
+  if (update.tun === "needs-grant") {
+    toastManager.add({
+      title,
+      description: t.coreTunNeedsGrant(),
+      type: "warning",
+      actionProps: { children: t.tunOpenSettings(), onClick: () => navigate(routes.tun) },
+    });
+    return;
+  }
+  toastManager.add({ title, description: update.tun === "regranted" ? t.coreTunRegranted() : undefined, type: "success" });
+}
+
 export function CorePage() {
   const status = useStatus();
   const form = useCoreSettings();
   const [installing, setInstalling] = useState(false);
+  const [confirmingUpdate, setConfirmingUpdate] = useState(false);
   const [config, setConfig] = useState<string>();
   const [controller, setController] = useState<{ host: string; port: number; secret: string }>();
   const { stored, draft, edit } = form;
 
+  const candidates = stored?.candidates ?? [];
+  const managed = candidates.find((c) => c.managed);
+  // The update stops the core it runs on and starts it again.
+  const restartsCore = status?.state === "running" && managed !== undefined && status.corePath === managed.path;
+
   async function install() {
+    setConfirmingUpdate(false);
     setInstalling(true);
     try {
-      const installed = await Settings.installCore();
-      toastManager.add({ title: t.coreInstalled(installed.version), type: "success" });
+      announce(await Settings.installCore());
       await form.reload();
     } catch (err) {
       toastManager.add({ title: t.coreInstallFailed(), description: errorMessage(err), type: "error" });
@@ -60,9 +87,8 @@ export function CorePage() {
     }
   }
 
-  const candidates = stored?.candidates ?? [];
   const coreOptions = [
-    ...candidates.map((c) => ({ value: c.path, label: `${c.path} · ${c.source}` })),
+    ...candidates.map((c) => ({ value: c.path, label: [c.path, c.source, c.version].filter(Boolean).join(" · ") })),
     { value: "choose", label: t.coreChoose() },
   ];
 
@@ -72,9 +98,9 @@ export function CorePage() {
       <PageBody>
         <Section
           action={
-            <Button loading={installing} onClick={install} size="sm" variant="outline">
+            <Button loading={installing} onClick={() => (restartsCore ? setConfirmingUpdate(true) : install())} size="sm" variant="outline">
               <DownloadIcon aria-hidden="true" />
-              {candidates.some((c) => c.source === "managed") ? t.coreUpdate() : t.coreInstall()}
+              {managed ? t.coreUpdate() : t.coreInstall()}
             </Button>
           }
           description={t.coreMihomoHint()}
@@ -202,6 +228,19 @@ export function CorePage() {
         )}
         <ApplyBar applying={form.applying} dirty={form.dirty} note={status?.state === "running" ? t.applyReloadNote() : undefined} onApply={form.apply} onDiscard={form.discard} />
       </PageBody>
+
+      <AlertDialog onOpenChange={setConfirmingUpdate} open={confirmingUpdate}>
+        <AlertDialogPopup>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t.coreUpdateRestartTitle()}</AlertDialogTitle>
+            <AlertDialogDescription>{t.coreUpdateRestartBody()}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogClose render={<Button variant="ghost" />}>{t.cancel()}</AlertDialogClose>
+            <Button onClick={install}>{t.coreUpdate()}</Button>
+          </AlertDialogFooter>
+        </AlertDialogPopup>
+      </AlertDialog>
 
       <Dialog onOpenChange={(open) => !open && setConfig(undefined)} open={config !== undefined}>
         <DialogPopup className="max-w-3xl">

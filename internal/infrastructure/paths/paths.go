@@ -49,6 +49,9 @@ func (p Paths) ManagedCores() string     { return p.join("cores") }
 func (p Paths) AgentSkillsState() string { return p.join("agent-skills-state.json") }
 func (p Paths) GuardianPID() string      { return p.join("work", "guardian.pid") }
 
+// ManagedCoreRecord notes which release the managed core is.
+func (p Paths) ManagedCoreRecord() string { return p.join("cores", "managed.json") }
+
 // ManagedCore is the Mihomo executable Kumo downloads itself.
 func (p Paths) ManagedCore() string {
 	name := "mihomo"

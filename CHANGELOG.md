@@ -19,6 +19,11 @@ overrides, settings and state carry over.
   a crash or force quit.
 - Port conflicts name the program holding the port and offer free ports.
 - JavaScript overrides (`main(config)`), Linux builds.
+- The Core page and `kumo core list` show the version of the Mihomo Kumo
+  downloaded. Updating does nothing when it is the latest, restarts a running
+  core onto the new release and gives TUN permission to the new file again.
+  A running core stays up during the download and carries it through its
+  proxy.
 
 ### Changed
 - A system proxy another app took over is shown and left alone; Kumo only

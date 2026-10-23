@@ -1114,6 +1114,10 @@ export interface Messages {
    */
   coreControllerRestart(): string;
   /**
+   * `Mihomo {version} is the latest`
+   */
+  coreCurrent(version: string): string;
+  /**
    * `Executable`
    */
   coreExecutable(): string;
@@ -1182,6 +1186,10 @@ export interface Messages {
    */
   coreInstalled(version: string): string;
   /**
+   * `Mihomo {version} installed and restarted`
+   */
+  coreInstalledRestarted(version: string): string;
+  /**
    * `Log level`
    */
   coreLogLevel(): string;
@@ -1210,9 +1218,25 @@ export interface Messages {
    */
   coreSecretPlaceholder(): string;
   /**
+   * `The new Mihomo needs TUN permission again.`
+   */
+  coreTunNeedsGrant(): string;
+  /**
+   * `TUN permission granted again.`
+   */
+  coreTunRegranted(): string;
+  /**
    * `Update`
    */
   coreUpdate(): string;
+  /**
+   * `Mihomo restarts to run the new release. Connections drop briefly.`
+   */
+  coreUpdateRestartBody(): string;
+  /**
+   * `Update Mihomo?`
+   */
+  coreUpdateRestartTitle(): string;
   /**
    * `View`
    */
@@ -2074,6 +2098,10 @@ export interface Messages {
    */
   tunStackMipsHint(): string;
   /**
+   * `Mihomo {version} is too old for this stack. Needs 1.19.32 or later.`
+   */
+  tunStackMipsOutdated(version: string): string;
+  /**
    * `Strict route`
    */
   tunStrict(): string;
@@ -2376,6 +2404,7 @@ const catalog = createCatalog<Messages>({
     "coreChoose": [],
     "coreControllerHint": [],
     "coreControllerRestart": [],
+    "coreCurrent": ["version"],
     "coreExecutable": [],
     "coreFindAlways": [],
     "coreFindOff": [],
@@ -2393,6 +2422,7 @@ const catalog = createCatalog<Messages>({
     "coreInstall": [],
     "coreInstallFailed": [],
     "coreInstalled": ["version"],
+    "coreInstalledRestarted": ["version"],
     "coreLogLevel": [],
     "coreMihomoHint": [],
     "coreMissing": [],
@@ -2400,7 +2430,11 @@ const catalog = createCatalog<Messages>({
     "corePorts": [],
     "coreRequiredHint": [],
     "coreSecretPlaceholder": [],
+    "coreTunNeedsGrant": [],
+    "coreTunRegranted": [],
     "coreUpdate": [],
+    "coreUpdateRestartBody": [],
+    "coreUpdateRestartTitle": [],
     "coreView": [],
     "dnsBlacklist": [],
     "dnsCache": [],
@@ -2616,6 +2650,7 @@ const catalog = createCatalog<Messages>({
     "tunPermissionOK": [],
     "tunStack": [],
     "tunStackMipsHint": [],
+    "tunStackMipsOutdated": ["version"],
     "tunStrict": [],
     "tunStrictHint": [],
     "tunUse": [],
@@ -2900,6 +2935,7 @@ const catalog = createCatalog<Messages>({
       "coreChoose": "Choose…",
       "coreControllerHint": "Where Kumo and agents talk to the core.",
       "coreControllerRestart": "Changing the controller restarts the core.",
+      "coreCurrent": "Mihomo {version} is the latest",
       "coreExecutable": "Executable",
       "coreFindAlways": "Always",
       "coreFindOff": "Off",
@@ -2917,6 +2953,7 @@ const catalog = createCatalog<Messages>({
       "coreInstall": "Download Mihomo",
       "coreInstallFailed": "Couldn't download Mihomo",
       "coreInstalled": "Mihomo {version} installed",
+      "coreInstalledRestarted": "Mihomo {version} installed and restarted",
       "coreLogLevel": "Log level",
       "coreMihomoHint": "The binary Kumo runs. Automatic prefers the one Kumo downloaded.",
       "coreMissing": "No Mihomo found. Download one or choose a file.",
@@ -2924,7 +2961,11 @@ const catalog = createCatalog<Messages>({
       "corePorts": "Ports",
       "coreRequiredHint": "This page reads from the running core.",
       "coreSecretPlaceholder": "No secret",
+      "coreTunNeedsGrant": "The new Mihomo needs TUN permission again.",
+      "coreTunRegranted": "TUN permission granted again.",
       "coreUpdate": "Update",
+      "coreUpdateRestartBody": "Mihomo restarts to run the new release. Connections drop briefly.",
+      "coreUpdateRestartTitle": "Update Mihomo?",
       "coreView": "View",
       "dnsBlacklist": "Exclude listed",
       "dnsCache": "Cache",
@@ -3140,6 +3181,7 @@ const catalog = createCatalog<Messages>({
       "tunPermissionOK": "Mihomo has permission",
       "tunStack": "Stack",
       "tunStackMipsHint": "Needs Mihomo 1.19.32 or later.",
+      "tunStackMipsOutdated": "Mihomo {version} is too old for this stack. Needs 1.19.32 or later.",
       "tunStrict": "Strict route",
       "tunStrictHint": "Stops leaks around the TUN device.",
       "tunUse": "Use TUN",
@@ -3423,6 +3465,7 @@ const catalog = createCatalog<Messages>({
       "coreChoose": "选择…",
       "coreControllerHint": "Kumo 与智能体访问内核的地址。",
       "coreControllerRestart": "更改控制器会重启内核。",
+      "coreCurrent": "Mihomo {version} 已是最新版",
       "coreExecutable": "可执行文件",
       "coreFindAlways": "总是",
       "coreFindOff": "关闭",
@@ -3440,6 +3483,7 @@ const catalog = createCatalog<Messages>({
       "coreInstall": "下载 Mihomo",
       "coreInstallFailed": "无法下载 Mihomo",
       "coreInstalled": "已安装 Mihomo {version}",
+      "coreInstalledRestarted": "已安装 Mihomo {version} 并重启",
       "coreLogLevel": "日志级别",
       "coreMihomoHint": "Kumo 运行的二进制文件。自动模式优先使用 Kumo 下载的版本。",
       "coreMissing": "未找到 Mihomo。请下载或选择一个文件。",
@@ -3447,7 +3491,11 @@ const catalog = createCatalog<Messages>({
       "corePorts": "端口",
       "coreRequiredHint": "此页面需要读取运行中的内核。",
       "coreSecretPlaceholder": "无密钥",
+      "coreTunNeedsGrant": "新的 Mihomo 需要重新授权 TUN。",
+      "coreTunRegranted": "已重新授权 TUN。",
       "coreUpdate": "更新",
+      "coreUpdateRestartBody": "Mihomo 将重启以运行新版本，连接会短暂中断。",
+      "coreUpdateRestartTitle": "更新 Mihomo？",
       "coreView": "查看",
       "dnsBlacklist": "排除列表中的",
       "dnsCache": "缓存",
@@ -3663,6 +3711,7 @@ const catalog = createCatalog<Messages>({
       "tunPermissionOK": "Mihomo 已获授权",
       "tunStack": "协议栈",
       "tunStackMipsHint": "需要 Mihomo 1.19.32 或更高版本。",
+      "tunStackMipsOutdated": "Mihomo {version} 版本过低，无法使用此协议栈，需要 1.19.32 或更高版本。",
       "tunStrict": "严格路由",
       "tunStrictHint": "防止流量绕过 TUN 设备泄漏。",
       "tunUse": "使用 TUN",

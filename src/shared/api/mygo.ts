@@ -22,6 +22,13 @@ export interface Candidate {
   name: string;
   path: string;
   source: string;
+  /**
+   * Managed is true for the core Kumo downloads, whichever way it was
+   * found; Source says "selected" when it is the chosen one.
+   */
+  managed?: boolean;
+  /** Version is known only for the managed core. */
+  version?: string;
 }
 
 /** Check is one item of a doctor report. */
@@ -81,6 +88,24 @@ export interface CoreSettings {
   corePath: string;
   candidates: Candidate[];
   tunPermission: TUNPermission;
+}
+
+/** CoreUpdate is the outcome of installing the latest Mihomo. */
+export interface CoreUpdate {
+  path: string;
+  /** Version is the release now installed. */
+  version: string;
+  /** Previous is the release that was installed before, if Kumo knew it. */
+  previous?: string;
+  /**
+   * Updated is false when the installed release was already the latest and
+   * nothing was downloaded.
+   */
+  updated: boolean;
+  /** Restarted is true when the core was running and was started again. */
+  restarted: boolean;
+  /** TUN is empty when TUN permission was not involved. */
+  tun?: string;
 }
 
 /**
@@ -231,12 +256,6 @@ export interface InspectUsage {
   download: number;
   total: number;
   expire?: number;
-}
-
-/** Installed is the result of an install. */
-export interface Installed {
-  path: string;
-  version: string;
 }
 
 /**
@@ -925,8 +944,11 @@ export const Settings = {
   grantTUN(): Promise<TUNPermission> {
     return call("Settings.GrantTUN");
   },
-  /** InstallCore downloads the latest Mihomo. */
-  installCore(): Promise<Installed> {
+  /**
+   * InstallCore installs the latest Mihomo, restarting a running one and
+   * giving TUN permission to the new file again.
+   */
+  installCore(): Promise<CoreUpdate> {
     return call("Settings.InstallCore");
   },
   /** RuntimeConfig is the YAML the core runs with, or would run with. */

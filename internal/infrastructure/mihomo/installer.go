@@ -7,10 +7,13 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -18,42 +21,80 @@ import (
 // ReleaseBase is where MetaCubeX publishes Mihomo builds.
 const ReleaseBase = "https://github.com/MetaCubeX/mihomo/releases"
 
-// Installed is the result of an install.
-type Installed struct {
-	Path    string `json:"path"`
-	Version string `json:"version"`
+// Installer fetches Mihomo builds. The zero value talks to GitHub.
+type Installer struct {
+	// Base is the releases URL; empty means ReleaseBase.
+	Base string
+	// Client makes the requests; nil means a client with a five minute timeout.
+	Client *http.Client
 }
 
-// Install downloads the latest Mihomo release for this machine to dest.
-// It reads the release's version.txt rather than GitHub's API, which rate
-// limits anonymous callers.
-func Install(ctx context.Context, dest string) (Installed, error) {
-	client := &http.Client{Timeout: 5 * time.Minute}
-	version, err := get(ctx, client, ReleaseBase+"/latest/download/version.txt")
+// ViaProxy is an Installer that reaches the releases through the HTTP
+// proxy a running core listens on, for networks where GitHub is only
+// reachable that way.
+func (i Installer) ViaProxy(port int) Installer {
+	proxy := &url.URL{Scheme: "http", Host: net.JoinHostPort("127.0.0.1", strconv.Itoa(port))}
+	i.Client = &http.Client{Timeout: 5 * time.Minute, Transport: &http.Transport{Proxy: http.ProxyURL(proxy)}}
+	return i
+}
+
+// Latest reads the newest release tag, such as v1.19.33. It reads the
+// release's version.txt rather than GitHub's API, which rate limits
+// anonymous callers.
+func (i Installer) Latest(ctx context.Context) (string, error) {
+	body, err := i.get(ctx, i.base()+"/latest/download/version.txt")
 	if err != nil {
-		return Installed{}, fmt.Errorf("reading the latest Mihomo version: %w", err)
+		return "", err
 	}
-	tag := strings.TrimSpace(string(version))
+	tag := strings.TrimSpace(string(body))
+	if tag == "" {
+		return "", fmt.Errorf("the release has no version")
+	}
+	return tag, nil
+}
+
+// Download fetches the build of tag for this machine and returns the
+// executable.
+func (i Installer) Download(ctx context.Context, tag string) ([]byte, error) {
 	asset := AssetName(runtime.GOOS, runtime.GOARCH, tag)
-	archive, err := get(ctx, client, ReleaseBase+"/download/"+tag+"/"+asset)
+	archive, err := i.get(ctx, i.base()+"/download/"+tag+"/"+asset)
 	if err != nil {
-		return Installed{}, fmt.Errorf("downloading %s: %w", asset, err)
+		return nil, fmt.Errorf("downloading %s: %w", asset, err)
 	}
-	binary, err := extract(asset, archive)
-	if err != nil {
-		return Installed{}, err
+	return extract(asset, archive)
+}
+
+func (i Installer) base() string {
+	if i.Base != "" {
+		return strings.TrimRight(i.Base, "/")
 	}
+	return ReleaseBase
+}
+
+func (i Installer) get(ctx context.Context, url string) ([]byte, error) {
+	client := i.Client
+	if client == nil {
+		client = &http.Client{Timeout: 5 * time.Minute}
+	}
+	return get(ctx, client, url)
+}
+
+// Place writes the executable to dest, replacing what is there. The new
+// file is a different file, so permissions given to the old one (such as
+// TUN's setuid bit) do not carry over.
+func Place(dest string, binary []byte) error {
 	if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil {
-		return Installed{}, err
+		return err
 	}
 	tmp := dest + ".download"
 	if err := os.WriteFile(tmp, binary, 0o755); err != nil {
-		return Installed{}, err
+		return err
 	}
 	if err := os.Rename(tmp, dest); err != nil {
-		return Installed{}, err
+		_ = os.Remove(tmp)
+		return err
 	}
-	return Installed{Path: dest, Version: tag}, nil
+	return nil
 }
 
 // AssetName is the release file for a platform, such as

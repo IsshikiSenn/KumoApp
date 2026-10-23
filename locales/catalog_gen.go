@@ -2818,6 +2818,16 @@ func (msgs Messages) CoreControllerRestart() string {
 	return Catalog.Format(msgs.locale, "coreControllerRestart", nil)
 }
 
+// CoreCurrent says "Mihomo {version} is the latest"
+// in the language the app shows.
+func CoreCurrent(version string) string { return In(i18n.Locale()).CoreCurrent(version) }
+
+// CoreCurrent says "Mihomo {version} is the latest"
+// in the language of msgs.
+func (msgs Messages) CoreCurrent(version string) string {
+	return Catalog.Format(msgs.locale, "coreCurrent", map[string]any{"version": version})
+}
+
 // CoreExecutable says "Executable"
 // in the language the app shows.
 func CoreExecutable() string { return In(i18n.Locale()).CoreExecutable() }
@@ -2988,6 +2998,18 @@ func (msgs Messages) CoreInstalled(version string) string {
 	return Catalog.Format(msgs.locale, "coreInstalled", map[string]any{"version": version})
 }
 
+// CoreInstalledRestarted says "Mihomo {version} installed and restarted"
+// in the language the app shows.
+func CoreInstalledRestarted(version string) string {
+	return In(i18n.Locale()).CoreInstalledRestarted(version)
+}
+
+// CoreInstalledRestarted says "Mihomo {version} installed and restarted"
+// in the language of msgs.
+func (msgs Messages) CoreInstalledRestarted(version string) string {
+	return Catalog.Format(msgs.locale, "coreInstalledRestarted", map[string]any{"version": version})
+}
+
 // CoreLogLevel says "Log level"
 // in the language the app shows.
 func CoreLogLevel() string { return In(i18n.Locale()).CoreLogLevel() }
@@ -3058,6 +3080,26 @@ func (msgs Messages) CoreSecretPlaceholder() string {
 	return Catalog.Format(msgs.locale, "coreSecretPlaceholder", nil)
 }
 
+// CoreTunNeedsGrant says "The new Mihomo needs TUN permission again."
+// in the language the app shows.
+func CoreTunNeedsGrant() string { return In(i18n.Locale()).CoreTunNeedsGrant() }
+
+// CoreTunNeedsGrant says "The new Mihomo needs TUN permission again."
+// in the language of msgs.
+func (msgs Messages) CoreTunNeedsGrant() string {
+	return Catalog.Format(msgs.locale, "coreTunNeedsGrant", nil)
+}
+
+// CoreTunRegranted says "TUN permission granted again."
+// in the language the app shows.
+func CoreTunRegranted() string { return In(i18n.Locale()).CoreTunRegranted() }
+
+// CoreTunRegranted says "TUN permission granted again."
+// in the language of msgs.
+func (msgs Messages) CoreTunRegranted() string {
+	return Catalog.Format(msgs.locale, "coreTunRegranted", nil)
+}
+
 // CoreUpdate says "Update"
 // in the language the app shows.
 func CoreUpdate() string { return In(i18n.Locale()).CoreUpdate() }
@@ -3066,6 +3108,26 @@ func CoreUpdate() string { return In(i18n.Locale()).CoreUpdate() }
 // in the language of msgs.
 func (msgs Messages) CoreUpdate() string {
 	return Catalog.Format(msgs.locale, "coreUpdate", nil)
+}
+
+// CoreUpdateRestartBody says "Mihomo restarts to run the new release. Connections drop briefly."
+// in the language the app shows.
+func CoreUpdateRestartBody() string { return In(i18n.Locale()).CoreUpdateRestartBody() }
+
+// CoreUpdateRestartBody says "Mihomo restarts to run the new release. Connections drop briefly."
+// in the language of msgs.
+func (msgs Messages) CoreUpdateRestartBody() string {
+	return Catalog.Format(msgs.locale, "coreUpdateRestartBody", nil)
+}
+
+// CoreUpdateRestartTitle says "Update Mihomo?"
+// in the language the app shows.
+func CoreUpdateRestartTitle() string { return In(i18n.Locale()).CoreUpdateRestartTitle() }
+
+// CoreUpdateRestartTitle says "Update Mihomo?"
+// in the language of msgs.
+func (msgs Messages) CoreUpdateRestartTitle() string {
+	return Catalog.Format(msgs.locale, "coreUpdateRestartTitle", nil)
 }
 
 // CoreView says "View"
@@ -5218,6 +5280,18 @@ func TunStackMipsHint() string { return In(i18n.Locale()).TunStackMipsHint() }
 // in the language of msgs.
 func (msgs Messages) TunStackMipsHint() string {
 	return Catalog.Format(msgs.locale, "tunStackMipsHint", nil)
+}
+
+// TunStackMipsOutdated says "Mihomo {version} is too old for this stack. Needs 1.19.32 or later."
+// in the language the app shows.
+func TunStackMipsOutdated(version string) string {
+	return In(i18n.Locale()).TunStackMipsOutdated(version)
+}
+
+// TunStackMipsOutdated says "Mihomo {version} is too old for this stack. Needs 1.19.32 or later."
+// in the language of msgs.
+func (msgs Messages) TunStackMipsOutdated(version string) string {
+	return Catalog.Format(msgs.locale, "tunStackMipsOutdated", map[string]any{"version": version})
 }
 
 // TunStrict says "Strict route"

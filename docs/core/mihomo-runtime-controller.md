@@ -22,6 +22,39 @@ the app, the CLI and the guardian agree on what runs.
    otherwise fail with the last error line of `logs/core.log`.
 7. Apply the system proxy when it is enabled.
 
+## Managed Core and Updates
+
+`SettingsService.InstallCore` (the Core page's *Download*/*Update*, `kumo core
+install`) installs the latest Mihomo to `cores/mihomo`:
+
+1. Read the latest tag from the release's `version.txt`. When it equals the
+   version recorded in `cores/managed.json` and the file is there, stop:
+   nothing is downloaded or restarted. A core with no record (installed
+   before versions were kept) is installed again.
+2. Download and unpack the build. A failure here touches nothing. The core
+   keeps running meanwhile: when it is up, the version check and the
+   download go through its mixed port, since GitHub may only be reachable
+   through the proxy it provides. If that proxy does not answer within 20 s,
+   the request is made directly.
+3. When the running core is the managed one, stop it. A running executable
+   cannot be replaced everywhere, and a replaced one keeps running the old
+   release.
+4. Replace the file, then record the tag and time in `managed.json`.
+5. Give TUN permission to the new file again when the old one had it by
+   setuid or capability (see [system integration](../operations/system-integration-permissions.md#tun-permission)).
+6. Start the core again when it was running. A refused grant does not stop
+   this: Mihomo only logs that its TUN device could not be created and
+   keeps serving the other listeners. The outcome says `needs-grant`.
+
+The chosen core only changes to the managed one when it is the first
+install, when it is already the choice, or when nothing was chosen. A core
+the user picked, or one that runs from another file, is left alone.
+
+The version is the tag the release announced when it was downloaded; Kumo
+does not run the binary to ask, so only the managed core has one, and a file
+replaced by hand leaves the record stale. Kumo does not check the download
+against a checksum (see [deferred work](../roadmap/service-mode-roadmap.md#deferred)).
+
 ## Reload, Mode and Settings
 
 Profile switches, override changes and DNS/sniffer/geo edits rebuild the
@@ -58,6 +91,9 @@ core or releases a proxy left behind.
   (`KUMO_TEST_MIHOMO=<path> go test ./internal/application`) through start,
   selection, stop, proxy ownership, takeover and reclaim, port conflicts,
   crashes, adoption, stale pids, broken profiles, profile switches,
-  concurrent starts and shutdown.
+  concurrent starts and shutdown. `core_update_test.go` installs from a
+  fake release (fresh, already latest, no record, new release, another
+  chosen core, offline, TUN regrant outcomes) and, with a real Mihomo,
+  updates a running core and leaves a different running core alone.
 - `scripts/e2e/lifecycle.sh <mihomo>` drives the built app (see
   [testing](../quality/testing-quality.md)).

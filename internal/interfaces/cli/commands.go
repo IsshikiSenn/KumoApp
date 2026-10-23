@@ -944,9 +944,9 @@ func coreCommand() *Command {
 			return Result{Data: settings.Candidates, Text: func(w *Writer) {
 				rows := [][]string{}
 				for _, c := range settings.Candidates {
-					rows = append(rows, []string{c.Path, c.Source})
+					rows = append(rows, []string{c.Path, c.Source, c.Version})
 				}
-				w.Table([]string{"PATH", "SOURCE"}, rows)
+				w.Table([]string{"PATH", "SOURCE", "VERSION"}, rows)
 			}}, err
 		}},
 		{Name: "use", Summary: "Use a specific executable", Usage: "kumo core use <path>", Run: func(e *Env) (Result, error) {
@@ -964,13 +964,28 @@ func coreCommand() *Command {
 			}
 			return Result{Data: map[string]string{"path": ""}}, k.Settings.SetCorePath("")
 		}},
-		{Name: "install", Summary: "Download the latest Mihomo for this machine", Run: func(e *Env) (Result, error) {
+		{Name: "install", Summary: "Install or update Kumo's Mihomo to the latest release", Run: func(e *Env) (Result, error) {
 			k, err := kumo(e)
 			if err != nil {
 				return Result{}, err
 			}
-			installed, err := k.Settings.InstallCore(e.Ctx)
-			return Result{Data: installed, Text: func(w *Writer) { w.Status("ok", "installed Mihomo "+installed.Version+" at "+installed.Path) }}, err
+			update, err := k.Settings.InstallCore(e.Ctx)
+			return Result{Data: update, Text: func(w *Writer) {
+				if !update.Updated {
+					w.Status("ok", "Mihomo "+update.Version+" is already the latest")
+					return
+				}
+				w.Status("ok", "installed Mihomo "+update.Version+" at "+update.Path)
+				if update.Restarted {
+					w.Status("ok", "restarted Mihomo")
+				}
+				switch update.TUN {
+				case application.TUNRegranted:
+					w.Status("ok", "gave TUN permission to the new core")
+				case application.TUNNeedsGrant:
+					w.Status("warn", "the new core has no TUN permission; run `kumo tun grant` with Mihomo stopped")
+				}
+			}}, err
 		}},
 	}}
 }

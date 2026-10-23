@@ -30,6 +30,13 @@ app, so a core started by one is seen, adopted and stopped by the other.
 holder with a free port to use; `--resolve-ports` switches to the suggested
 ports. `kumo stop` releases only a system proxy Kumo set.
 
+`kumo core install` installs or updates Kumo's own Mihomo to the latest
+release. It does nothing when that release is installed. A running managed
+core is restarted, and TUN permission is given again when the old file had
+it. The result (`--json`) holds `version`, `previous`, `updated`,
+`restarted` and `tun` (`kept`, `regranted` or `needs-grant`). `kumo core list`
+shows the managed core's version.
+
 ## Prompts
 
 `application.Guides` lists, for each page, intents with a goal and the

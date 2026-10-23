@@ -14,6 +14,7 @@ Windows). The layout matches the Swift app's, so its data carries over.
 | `work/config.yaml` | the generated runtime config Mihomo runs |
 | `work/core.pid`, `work/guardian.pid` | the running core and guardian |
 | `cores/mihomo` | the core Kumo downloaded |
+| `cores/managed.json` | the release of `cores/mihomo` (`version`, `installedAt`), written by the install |
 | `logs/core.log` | Mihomo's output, with a `--- Kumo started … ---` line per start |
 | `agent-skills-state.json` | which agents have the Kumo skill |
 

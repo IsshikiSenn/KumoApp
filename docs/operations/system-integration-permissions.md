@@ -42,7 +42,17 @@ helper service, Kumo grants that once, to the core binary:
 - Linux: `pkexec setcap cap_net_admin,cap_net_bind_service=+eip`.
 
 The TUN page shows whether the core has permission (root, setuid or
-capability) and offers *Grant…*. A replaced core binary needs a new grant.
+capability) and offers *Grant…*. A replaced core binary needs a new grant:
+the permission belongs to the file, and a new file has none.
+
+Installing a new Mihomo from Kumo does this itself. When the old file had
+setuid or capability permission, the update asks for the password again
+before it starts the core. If that is refused or fails, the update still
+succeeds and says the new core needs permission: the Core page's notice
+opens the TUN page, and `kumo core install` points to `kumo tun grant`. TUN
+stays on in the settings, and takes effect at the next start once the grant
+is made. Root and Windows administrator rights belong to Kumo, not the file,
+and need nothing.
 
 ## Other Integration
 
